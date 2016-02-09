@@ -14,8 +14,11 @@ http://playground.arduino.cc/Main/TVout
 
 # TODO
 -Pong (2 - 4 players)
+
 -Space Invaders
+
 -Frog
+
 -Another game :D
 
 # Descripcion del proyecto
