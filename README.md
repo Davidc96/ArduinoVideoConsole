@@ -8,6 +8,16 @@ For more info about the TVOut Library:
 
 http://playground.arduino.cc/Main/TVout
 
+# What is Done
+
+-Pong game (only player vs IA)
+
+# TODO
+-Pong (2 - 4 players)
+-Space Invaders
+-Frog
+-Another game :D
+
 # Descripcion del proyecto
 
 El objetivo de este proyecto es crear una videoconsola desde 0 con una placa Arduino.
