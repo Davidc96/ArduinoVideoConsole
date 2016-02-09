@@ -35,4 +35,4 @@ Este proyecto ejecutará juegos pequeños como el Pong, el SpaceInvaders etc y h
 -TecnoUAB (Universidad Autonoma Barcelona)
 
 # SS
-![alt tag](http://tecnouab.com/assets/img/tecnouab/videojuegos.jpg)
+![alt tag](https://cloud.githubusercontent.com/assets/4979202/12916094/1a1b21a4-cf30-11e5-903d-4d73e301105b.jpg)
