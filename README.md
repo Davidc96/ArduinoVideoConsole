@@ -4,6 +4,10 @@ VideoConsole based on Arduino MEGA 2560 and TVOut library
 To use it download the library here: 
 https://code.google.com/archive/p/arduino-tvout/
 
+You need this library too:
+
+https://github.com/ivanseidel/ArduinoThread
+
 For more info about the TVOut Library:
 
 http://playground.arduino.cc/Main/TVout
