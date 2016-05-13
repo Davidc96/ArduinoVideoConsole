@@ -1,3 +1,7 @@
+#include <Thread.h>
+#include <ThreadController.h>
+
+
 #include <fontALL.h>
 #include <TVout.h>
 #include <video_gen.h>
@@ -20,8 +24,8 @@ int LastStateRight = 1;
 #define PULL_DOWN  0
 #define PULL_UP 1
 //GAME CONTROLLER
-int BUTTON_A_PORT = 2;
-int BUTTON_B_PORT = 3;
+int BUTTON_A_PORT = 13;
+int BUTTON_B_PORT = 12;
 int BUTTON_UP_PORT = 4;
 int BUTTON_DOWN_PORT = 5;
 int BUTTON_LEFT_PORT = 6;
@@ -45,7 +49,8 @@ void setup() {
   
   TV.begin(PAL, 120, 96);
   TV.select_font(font6x8);
-  Pongplay();
+  intro();
+ // Pongintro();
   TV.clear_screen();
  
 
@@ -74,7 +79,7 @@ void loop() {
     {
       if(option == 0)
       {
-        
+        SImain();
       }
       else
       {
@@ -105,7 +110,7 @@ void menu()
 {
   TV.println("--------MENU-------");
   TV.println("\n");
-  TV.print(10, 20, "FROGGY");
+  TV.print(10, 20, "SPACEINVADERS");
   TV.print(10, 40, "PONG");
   TV.print(0, 70, "USA LOS BOTONES ARRIBA Y ABAJO");
   TV.print(0, 88, "PULSE A PARA JUGAR");
@@ -127,7 +132,7 @@ bool Pongplay()
   int StateA;
   option = 0;
   Pongintro();
-  TV.clear_screen();
+  TV.clear_screen(); 
   PonggameMenu();
    TV.print_char(0, 20, '-');
    
@@ -181,7 +186,7 @@ bool Pongplay()
       }
       else if(option == 1)
       {
-        
+        PongDemoGame(IALevel);
       }
       else if(option == 2)
       {
@@ -190,7 +195,7 @@ bool Pongplay()
     }
     LastStateUp = StateUP;
     LastStateDown = StateDOWN;
-    //delay(250);
+//    delay(100);
   }
   
   delay(2000);
@@ -247,7 +252,7 @@ void PonggameMenu()
   TV.println("--------MENU-------");
   TV.println("\n");
   TV.print(10, 20, "JUGAR");
-  TV.print(10, 40, "OPCIONES");
+  TV.print(10, 40, "DEMO");
   TV.print(10, 60, "SALIR");
   
 
@@ -257,8 +262,9 @@ void PonggameMenu()
 
 
 }
-void PongGame(int IALevel)
+void PongDemoGame(int IALevel)
 {
+  delay(2000);
   int PX = 20;
   int PY = 40;
   int IAX = 100;
@@ -275,12 +281,64 @@ void PongGame(int IALevel)
   TV.clear_screen();
   //Cargamos el backGround
   PongBackGround(PX, PY, IAX, IAY, pl1Score, pl2Score);
-  while(!fingame)
+  while(digitalRead(BUTTON_A_PORT) != PULL_DOWN)
   {
    PongBackGround(PX, PY, IAX, IAY, pl1Score, pl2Score);
    ballMovement(PilX, PilY, PX, PY, IAX, IAY, dirY, dirX, 'O', pl1Score, pl2Score);
    IAMovement(IAX, IAY, dirIA, PilY, PilX, IALevel);
-   playerMovement(PX, PY);
+   IA2Movement(PX, PY, dirIA2, PilY, PilX, IALevel);
+   //playerMovement(PX, PY);
+   //player2Movement(IAX, IAY);
+   //fingame = checkWin(pl1Score, pl2Score);
+            
+  }
+  /*while(digitalRead(BUTTON_A_PORT) != PULL_DOWN)
+  {
+    TV.println(0, 60, "Pulsa A para continuar");
+  
+  
+  }*/
+  delay(2000);
+  Pongplay();
+}
+  int PX = 20;
+  int PY = 40;
+  int IAX = 100;
+  int IAY = 20;
+void PongGame(int IALevel)
+{
+  int PilX = 58;
+  int PilY = 45;
+  int dirY = -1; //DIR Y: UP = -1 DOWN = 1
+  int dirX = 1; //DIR X: LEFT = -1 RIGHT = 1
+  int dirIA = 1;
+  int dirIA2 = 1;
+  int pl1Score = 0;
+  int pl2Score = 0;
+  bool fingame = false;
+  TV.clear_screen();
+  //Cargamos el backGround
+  PongBackGround(PX, PY, IAX, IAY, pl1Score, pl2Score);
+  Thread player = Thread();
+  Thread player2 = Thread();
+  player.enabled = true;
+  player.setInterval(1000000);
+  player.onRun(playerMovement);
+  player2.enabled = true;
+  player2.setInterval(1000000);
+  player2.onRun(player2Movement);
+
+  
+  
+  while(!fingame)
+  {
+   PongBackGround(PX, PY, IAX, IAY, pl1Score, pl2Score);
+   ballMovement(PilX, PilY, PX, PY, IAX, IAY, dirY, dirX, 'O', pl1Score, pl2Score);
+   player2.run();
+   player.run();
+//   IAMovement(IAX, IAY, dirIA, PilY, PilX, IALevel);
+//   playerMovement(PX, PY);
+//   player2Movement(IAX, IAY);
    fingame = checkWin(pl1Score, pl2Score);
             
   }
@@ -366,7 +424,14 @@ void ballMovement(int &X, int &Y, int PX, int PY, int IAX, int IAY, int &dirY, i
   if((Y >=PY + 5 && Y <= PY + 14) && X == PX)
   {
     dirX = 1;
-    dirY = 0;
+    if (dirY == 0)
+    {
+      dirY = random(-2,2);
+    }
+    else
+    {
+      dirY = 0;
+    }
   }
   if((Y >=PY + 15 && Y <= PY + 20) && X == PX)
   {
@@ -389,7 +454,7 @@ void ballMovement(int &X, int &Y, int PX, int PY, int IAX, int IAY, int &dirY, i
    if((Y >= IAY + 15 && Y <= IAY + 20) && X == IAX - 5)
   {
     dirX = -1;
-    dirY = random(1, 2);
+    dirY = random(0, 2);
     
   }
   
@@ -399,20 +464,39 @@ void ballMovement(int &X, int &Y, int PX, int PY, int IAX, int IAY, int &dirY, i
   delay(50);
 
 }
-void playerMovement(int X, int &Y)
+void playerMovement()
 {
-  TV.draw_line(X, Y, X, Y+20, BLACK);
-  int StateDOWN = digitalRead(BUTTON_DOWN_PORT);
-  int StateUP = digitalRead(BUTTON_UP_PORT);
+  
+  
+    TV.draw_line(PX, PY, PX, PY+20, BLACK);
+    int StateDOWN = digitalRead(BUTTON_DOWN_PORT);
+    int StateUP = digitalRead(BUTTON_UP_PORT);
+    if(StateDOWN == PULL_DOWN)
+    {
+      if(PY + 20 <= 88)
+      PY += 2;  
+    }
+    else if(StateUP == PULL_DOWN)
+    {
+      if(PY >= 12) 
+      PY += -2;
+    }
+  
+}
+void player2Movement()
+{
+  TV.draw_line(IAX, IAY, IAX, IAY+20, BLACK);
+  int StateDOWN = digitalRead(BUTTON_B_PORT);
+  int StateUP = digitalRead(BUTTON_A_PORT);
   if(StateDOWN == PULL_DOWN)
   {
-    if(Y + 20 <= 88)
-    Y += 1;  
+    if(IAY + 20 <= 88)
+    IAY += 2;  
   }
   else if(StateUP == PULL_DOWN)
   {
-    if(Y >= 12) 
-    Y += -1;
+    if(IAY >= 12) 
+    IAY += -2;
   }
 }
 void IAMovement(int &IAX, int &IAY, int &dir, int PY, int PX, int nivel)
@@ -430,7 +514,28 @@ void IAMovement(int &IAX, int &IAY, int &dir, int PY, int PX, int nivel)
   {
     dir = -1;
   }
-  if(PX > 85)
+  if(PX > 50)
+  {
+  IAY += 1 * dir * nivel;
+  }
+
+}
+void IA2Movement(int &IAX, int &IAY, int &dir, int PY, int PX, int nivel)
+{
+  TV.draw_line(IAX, IAY, IAX, IAY+20, BLACK);
+  if(IAY > PY)
+  {
+    dir = -1;
+  }
+  if(IAY < PY)
+  {
+    dir = 1;
+  }
+  if(IAY + 20 >= 88)
+  {
+    dir = -1;
+  }
+  if(PX < 50)
   {
   IAY += 1 * dir * nivel;
   }
@@ -446,19 +551,208 @@ bool checkWin(int pl1score, int pl2score)
 {
  PongScore(pl1score, pl2score);
  bool gamefinish = false;
- if(pl1score >= 5)
+ if(pl1score >= 3)
  {
-   TV.println(5, 45, "JUGADOR 1 HA GANADO");
+   TV.println(3, 45, "JUGADOR 1 HA GANADO");
    gamefinish = true;    
  }
- if(pl2score >= 5)
+ if(pl2score >= 3)
  {  
 
-   TV.println(5, 45, "JUGADOR 2 HA GANADO");
+   TV.println(3, 45, "JUGADOR 2 HA GANADO");
   gamefinish = true;
  }
   return gamefinish;
 
 }
 
- 
+//---------------------Space Invaders----------------------------
+//--------------Definitions---------------
+typedef struct
+{
+  int PosX;
+  int PosY;
+  bool visible;
+  char graphic;
+}Laser;
+typedef struct
+{
+  int ShipX;
+  int ShipY;
+  int counter;
+  int score;
+}Player;
+typedef struct
+{
+  int ID;
+  char graphic;
+  int points;
+  bool visible;
+  int PosX;
+  int PosY;
+  
+}Invaders;
+#define MAX_ALIENS 20
+Invaders invaders[MAX_ALIENS];
+Player player;
+Laser laser;
+
+
+void LoadAllData()
+{
+  int i;
+  //Initialize Player Data
+  player.ShipY = 100;
+  player.ShipX = 50;
+  player.score = 0;
+  player.counter = 0;
+
+  //Initialize Laser Data
+
+  laser.PosX = 0;
+  laser.PosY = 0;
+  laser.visible = false;
+  laser.graphic = '|';
+  int c = 0;
+  int d = 0;
+  int e = 0;
+  //Initialize Invaders Data
+  for(i = 0; i < MAX_ALIENS; i++)
+  {
+    invaders[i].ID = i;
+    if(i < 10)
+    {
+      invaders[i].graphic = 'B';
+      invaders[i].points = 100;
+      invaders[i].PosX = 0 + c*10;
+      invaders[i].PosY = 20;
+      invaders[i].visible = true;
+      c++;
+    }
+    else if(i < 21 && i >= 10)
+    {
+     
+      invaders[i].graphic = 'A';
+      invaders[i].points = 75;
+      invaders[i].PosX = 0 + d*10;
+      invaders[i].PosY = 10;
+      invaders[i].visible = true;
+      d++;
+    }/*
+    else if( i < 34 && i >= 24)
+    {
+      invaders[i].graphic = 'B';
+      invaders[i].points = 50;
+      invaders[i].PosX = 20 + e*10;
+      invaders[i].PosY = 30;
+      invaders[i].visible = true;
+      e++;
+    }*/
+  TV.print_char(invaders[i].PosX, invaders[i].PosY, invaders[i].graphic);
+  
+  
+  }
+  
+}
+void UpdateInvadersPosition(int oldX[], int oldY[])
+{
+  Serial.println("---------- UpdateInvaderPosition----------");
+    for(int i = 0; i < MAX_ALIENS; i++)
+    {
+      if(invaders[i].visible != false)
+      {   
+        TV.print_char(oldX[i], oldY[i], ' ');
+        invaders[i].PosX += 5;
+        TV.print_char(invaders[i].PosX, invaders[i].PosY, invaders[i].graphic);
+        
+        Serial.println(invaders[MAX_ALIENS - 1].PosX);
+      }
+    }
+    Serial.println("---------- UpdateInvaderPosition----------");
+}
+void LaserCollision()
+{
+  for(int i = 0; i < MAX_ALIENS; i++)
+  {
+    if(laser.PosX == invaders[i].PosX && laser.PosY == invaders[i].PosY)
+    {
+      invaders[i].visible = false;
+      laser.visible = false;
+      player.score += invaders[i].points;
+    }
+  }
+}
+void LaserMovement()
+{
+ if(laser.visible == true)
+ {
+  laser.PosY -= 5;
+  if (laser.PosY < 0) 
+  {
+    laser.visible = false;
+  }
+ }
+}
+void updateLaserPosition()
+{
+  if(laser.visible == true)
+  {
+    TV.print_char(laser.PosX, laser.PosY, laser.graphic);
+  }
+}
+void SImain()
+{
+ TV.clear_screen();
+ LoadAllData();
+ int i = 0;
+ bool finish = false;
+ int oldX[MAX_ALIENS];
+ int oldY[MAX_ALIENS];
+ int counter = 0;
+ int desp = 0;
+ while(!finish)
+ {
+    //Baja muy lento
+    if(i >= MAX_ALIENS)
+    {
+      UpdateInvadersPosition(oldX, oldY);
+      i = 0;
+      if(counter >= 3)
+      {
+        counter = 0;
+        desp = 0;
+      }
+      else
+      {
+        counter++;
+      }
+
+      
+      desp += 5; 
+      //(1);
+    }
+    else
+    {
+     
+      oldY[i] = invaders[i].PosY;
+      Serial.println("---------- Bucle----------");
+      Serial.println(counter);
+      oldX[i] = invaders[i].PosX;
+      if(counter == 3)
+      {
+        
+        
+        oldY[i] = invaders[i].PosY;
+        invaders[i].PosY += 10;
+        Serial.println(invaders[MAX_ALIENS - 1].PosX);
+        invaders[i].PosX -= desp;
+        Serial.println(invaders[MAX_ALIENS - 1].PosX);
+      }
+      
+      i++;
+    }
+     
+    
+ }
+
+}
