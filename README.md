@@ -1,4 +1,5 @@
 # ArduinoVideoConsole
+# OLD PROJECT: NEW IS HERE: https://github.com/Davidc96/PlayArduino
 VideoConsole based on Arduino MEGA 2560 and TVOut library
 
 To use it download the library here: 
